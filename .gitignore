@@ -1,0 +1,14 @@
+dag.svg
+Rplots.pdf
+.snakemake/
+scripts/.snakemake*
+logs/*
+logs/cluster/*
+snakemake.err
+snakemake.log
+config.yaml
+mogrify.log
+.*.swp
+
+!logs/cluster/
+!logs/cluster/.gitkeep
