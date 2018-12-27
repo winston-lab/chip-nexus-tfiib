@@ -48,7 +48,7 @@ rule classify_intragenic_peaks:
         cat <(echo -e "{peak_fields}orf_chrom\torf_start\torf_end\torf_name\torf_score\torf_strand\tatg_to_peak_dist") - > {output.table}) &> {log}
 
         (bedtools intersect -a {input.peaks} -b {input.genic_anno} -v | \
-        bedtools intersect -a stdin -b <(cut -f1-6 {input.orf_anno}) -u | \
+        bedtools intersect -a stdin -b <(cut -f1-6 {input.orf_anno}) -f 1 -u | \
         tee {output.narrowpeak} | \
         awk 'BEGIN{{FS=OFS="\t"}}{{start=$2+$10; print $1, start, start+1, $4, $5, $6}}' > {output.bed}) &>> {log}
         """
@@ -109,7 +109,7 @@ rule classify_genic_diffbind_peaks:
         cut --complement -f22 | \
         cat <(paste <(head -n 1 {input.results}) <(echo -e "peak_summit\tgenic_chrom\tgenic_start\tgenic_end\tgenic_name\tgenic_score\tgenic_strand")) - > {output.results}) &> {log}
 
-        (bedtools intersect -a {input.narrowpeak} -b {input.annotation} -u | \
+        (bedtools intersect -a {input.narrowpeak} -b {input.annotation} -f 1 -u | \
         tee {output.narrowpeak} | \
         awk 'BEGIN{{FS=OFS="\t"}}{{start=$2+$10; print $1, start, start+1, $4, $5, $6}}' > {output.bed}) &>> {log}
         """
