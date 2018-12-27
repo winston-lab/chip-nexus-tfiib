@@ -9,7 +9,7 @@ __default__:
 
 summarise_diffbind_results:
     time: 2
-    mem : 10
+    mem : 400
 
 gene_ontology:
     time: 4

@@ -105,7 +105,7 @@ rule classify_genic_diffbind_peaks:
     shell: """
         (tail -n +2 {input.results} | \
         paste - <(cut -f10 {input.narrowpeak}) | \
-        bedtools intersect -a stdin -b {input.annotation} -wo | \
+        bedtools intersect -a stdin -b {input.annotation} -f 1 -wo | \
         cut --complement -f22 | \
         cat <(paste <(head -n 1 {input.results}) <(echo -e "peak_summit\tgenic_chrom\tgenic_start\tgenic_end\tgenic_name\tgenic_score\tgenic_strand")) - > {output.results}) &> {log}
 

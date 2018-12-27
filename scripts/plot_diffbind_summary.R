@@ -15,7 +15,8 @@ import = function(df, path, alpha, label_col_id, category){
 
 main = function(in_all, in_genic, in_intra, in_inter,
                 condition, control, lfc, alpha,
-                out_ma, out_volcano, out_volcano_free, out_mosaic, out_summary_table){
+                out_ma, out_volcano, out_volcano_free, out_mosaic, out_summary_table,
+                factor){
     df = tibble() %>%
         import(in_all, alpha=alpha, label_col_id="peak_name", category="all") %>%
         import(in_genic, alpha=alpha, label_col_id="genic_name", category="genic") %>%
