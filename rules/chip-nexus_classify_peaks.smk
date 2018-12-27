@@ -105,11 +105,11 @@ rule classify_genic_diffbind_peaks:
     shell: """
         (tail -n +2 {input.results} | \
         paste - <(cut -f10 {input.narrowpeak}) | \
-        bedtools intersect -a stdin -b {input.annotation} -f 1 -wo | \
+        bedtools intersect -a stdin -b {input.annotation} -wo | \
         cut --complement -f22 | \
         cat <(paste <(head -n 1 {input.results}) <(echo -e "peak_summit\tgenic_chrom\tgenic_start\tgenic_end\tgenic_name\tgenic_score\tgenic_strand")) - > {output.results}) &> {log}
 
-        (bedtools intersect -a {input.narrowpeak} -b {input.annotation} -f 1 -u | \
+        (bedtools intersect -a {input.narrowpeak} -b {input.annotation} -u | \
         tee {output.narrowpeak} | \
         awk 'BEGIN{{FS=OFS="\t"}}{{start=$2+$10; print $1, start, start+1, $4, $5, $6}}' > {output.bed}) &>> {log}
         """
@@ -130,12 +130,12 @@ rule classify_intragenic_diffbind_peaks:
         (tail -n +2 {input.results} | \
         paste - <(cut -f10 {input.narrowpeak}) | \
         bedtools intersect -a stdin -b {input.genic_anno} -v | \
-        bedtools intersect -a stdin -b <(cut -f1-6 {input.orf_anno}) -wo | \
+        bedtools intersect -a stdin -b <(cut -f1-6 {input.orf_anno}) -f 1 -wo | \
         awk 'BEGIN{{FS=OFS="\t"}} {{summit=$2+$15}} $21=="+"{{$22=summit-$17}} $21=="-"{{$22=$18-(summit+1)}} {{print $0}}' | \
         cat <(paste <(head -n 1 {input.results}) <(echo -e "peak_summit\torf_chrom\torf_start\torf_end\torf_name\torf_score\torf_strand\tatg_to_peak_dist")) - > {output.results}) &> {log}
 
         (bedtools intersect -a {input.narrowpeak} -b {input.genic_anno} -v | \
-        bedtools intersect -a stdin -b {input.orf_anno} -u | \
+        bedtools intersect -a stdin -b {input.orf_anno} -f 1 -u | \
         tee {output.narrowpeak} | \
         awk 'BEGIN{{FS=OFS="\t"}}{{start=$2+$10; print $1, start, start+1, $4, $5, $6}}' > {output.bed}) &>> {log}
         """

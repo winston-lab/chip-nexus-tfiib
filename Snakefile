@@ -66,7 +66,7 @@ rule summarise_diffbind_results:
         intragenic = "diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-all.tsv",
         intergenic = "diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-all.tsv",
     output:
-        summary_table = "diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffexp-summary.tsv",
+        summary_table = "diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-summary.tsv",
         mosaic = "diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-mosaic.svg",
         maplot = "diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-maplot.svg",
         volcano = "diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-volcano.svg",
