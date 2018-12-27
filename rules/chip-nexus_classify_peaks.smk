@@ -43,7 +43,7 @@ rule classify_intragenic_peaks:
         "logs/classify_peaks/classify_intragenic_peaks-{group}-{factor}.log"
     shell: """
         (bedtools intersect -a {input.peaks} -b {input.genic_anno} -v | \
-        bedtools intersect -a stdin -b <(cut -f1-6 {input.orf_anno}) -wo | \
+        bedtools intersect -a stdin -b <(cut -f1-6 {input.orf_anno}) -f 1 -wo | \
         awk 'BEGIN{{FS=OFS="\t"}} {{summit=$2+$10}} $16=="+"{{$17=summit-$12}} $16=="-"{{$17=$13-(summit+1)}} {{print $0}}' | \
         cat <(echo -e "{peak_fields}orf_chrom\torf_start\torf_end\torf_name\torf_score\torf_strand\tatg_to_peak_dist") - > {output.table}) &> {log}
 
