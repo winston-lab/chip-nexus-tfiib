@@ -15,9 +15,9 @@ rule classify_genic_peaks:
         annotation = build_annotations("annotations/" + config["genome"]["name"] + "_genic-regions.bed"),
         peaks = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks.narrowPeak"),
     output:
-        table = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-genic.tsv"),
-        narrowpeak = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-genic.narrowpeak"),
-        bed = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-genic-summits.bed"),
+        table = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-genic.tsv",
+        narrowpeak = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-genic.narrowpeak",
+        bed = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-genic-summits.bed",
     log:
         "logs/classify_peaks/classify_genic_peaks-{group}-{factor}.log"
     shell: """
@@ -33,12 +33,12 @@ rule classify_genic_peaks:
 rule classify_intragenic_peaks:
     input:
         genic_anno = build_annotations("annotations/" + config["genome"]["name"] + "_genic-regions.bed"),
-        orf_anno = nexuspipe(os.path.abspath(build_annotations(config["genome"]["orf_annotation"]))),
+        orf_anno = os.path.abspath(build_annotations(config["genome"]["orf_annotation"])),
         peaks = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks.narrowPeak"),
     output:
-        table = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intragenic.tsv"),
-        narrowpeak = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intragenic.narrowpeak"),
-        bed = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intragenic-summits.bed"),
+        table = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intragenic.tsv",
+        narrowpeak = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intragenic.narrowpeak",
+        bed = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intragenic-summits.bed",
     log:
         "logs/classify_peaks/classify_intragenic_peaks-{group}-{factor}.log"
     shell: """
@@ -61,9 +61,9 @@ rule classify_intergenic_peaks:
         genic_anno = build_annotations("annotations/" + config["genome"]["name"] + "_genic-regions.bed"),
         peaks = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks.narrowPeak"),
     output:
-        table = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intergenic.tsv"),
-        narrowpeak = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intergenic.narrowpeak"),
-        bed = nexuspipe("peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intergenic-summits.bed"),
+        table = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intergenic.tsv",
+        narrowpeak = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intergenic.narrowpeak",
+        bed = "peakcalling/macs/{group}/{group}_experimental-{factor}-chipnexus_peaks-intergenic-summits.bed",
     log:
         "logs/classify_peaks/classify_intergenic_peaks-{group}-{factor}.log"
     shell: """
@@ -94,12 +94,12 @@ rule classify_intergenic_peaks:
 rule classify_genic_diffbind_peaks:
     input:
         annotation = build_annotations("annotations/" + config["genome"]["name"] + "_genic-regions.bed"),
-        narrowpeak = nexusipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.narrowpeak"),
+        narrowpeak = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.narrowpeak"),
         results = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.tsv"),
     output:
-        results = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/genic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-genic-{direction}.tsv"),
-        narrowpeak = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/genic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-genic-{direction}.narrowpeak"),
-        bed = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/genic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-genic-{direction}-summits.bed"),
+        results = "diff_binding/{condition}-v-{control}/{norm}/genic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-genic-{direction}.tsv",
+        narrowpeak = "diff_binding/{condition}-v-{control}/{norm}/genic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-genic-{direction}.narrowpeak",
+        bed = "diff_binding/{condition}-v-{control}/{norm}/genic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-genic-{direction}-summits.bed",
     log :
         "logs/classify_diffbind_peaks/classify_genic_diffbind_peaks-{condition}-v-{control}_{norm}-{direction}-{factor}.log"
     shell: """
@@ -121,9 +121,9 @@ rule classify_intragenic_diffbind_peaks:
         narrowpeak = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.narrowpeak"),
         results = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.tsv"),
     output:
-        results = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-{direction}.tsv"),
-        narrowpeak = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-{direction}.narrowpeak"),
-        bed = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-{direction}-summits.bed"),
+        results = "diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-{direction}.tsv",
+        narrowpeak = "diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-{direction}.narrowpeak",
+        bed = "diff_binding/{condition}-v-{control}/{norm}/intragenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intragenic-{direction}-summits.bed",
     log:
         "logs/classify_diffbind_peaks/classify_intragenic_diffbind_peaks-{condition}-v-{control}_{norm}-{direction}-{factor}.log"
     shell: """
@@ -149,9 +149,9 @@ rule classify_intergenic_diffbind_peaks:
         narrowpeak = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.narrowpeak"),
         results = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{direction}.tsv"),
     output:
-        results = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-{direction}.tsv"),
-        narrowpeak = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-{direction}.narrowpeak"),
-        bed = nexuspipe("diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-{direction}-summits.bed"),
+        results = "diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-{direction}.tsv",
+        narrowpeak = "diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-{direction}.narrowpeak",
+        bed = "diff_binding/{condition}-v-{control}/{norm}/intergenic/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-intergenic-{direction}-summits.bed",
     log:
         "logs/classify_diffbind_peaks/classify_intragenic_diffbind_peaks-{condition}-v-{control}_{norm}-{direction}-{factor}.log"
     shell: """
