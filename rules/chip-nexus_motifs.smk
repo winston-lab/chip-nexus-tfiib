@@ -16,7 +16,8 @@ rule get_overlapping_motifs:
         "motifs/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-{category}-{direction}-allFIMOresults.tsv.gz",
     params:
         distance = config["motifs"]["search-distance"],
-    log: "logs/get_upstream_motifs/get_upstream_motifs-{condition}-v-{control}-{norm}-{category}-{direction}-{factor}.log"
+    log:
+        "logs/get_upstream_motifs/get_upstream_motifs-{condition}-v-{control}-{norm}-{category}-{direction}-{factor}.log"
     shell: """
         (sed 's/Inf/255/g' {input.peaks} | \
         awk 'BEGIN{{FS=OFS="\t"}}{{$2=$2+$10; $3=$2+1; print $0}}' | \
@@ -39,7 +40,8 @@ rule get_random_motifs:
     params:
         window = 2*(config["motifs"]["search-distance"])+1,
         n = 6000
-    log: "logs/get_random_motifs.log"
+    log:
+        "logs/get_random_motifs.log"
     shell: """
         (bedtools random -l {params.window} -n {params.n} -g <(faidx {input.fasta} -i chromsizes) | \
         sort -k1,1 -k2,2n | \
@@ -61,8 +63,10 @@ rule test_motif_enrichment:
     params:
         fdr = -log10(config["motifs"]["enrichment-fdr"]),
         direction = lambda wc: "upregulated" if wc.direction=="up" else "downregulated"
-    conda: "../envs/tidyverse.yaml"
-    script: "../scripts/motif_enrichment.R"
+    conda:
+        nexuspipe("../envs/tidyverse.yaml")
+    script:
+        "../scripts/motif_enrichment.R"
 
 ##TODO: this all changes with MEME suite 5.0
 ##0. extend peak summit annotation to upstream and downstream distances

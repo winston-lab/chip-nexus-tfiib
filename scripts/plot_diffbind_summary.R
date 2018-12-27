@@ -1,41 +1,35 @@
 library(tidyverse)
-library(forcats)
 library(ggrepel)
 library(ggpmisc)
 
-import = function(path, alpha){
-    read_tsv(path) %>%
-    mutate(sig = if_else(logpadj > -log10(alpha), TRUE, FALSE)) %>%
-    return()
+import = function(df, path, alpha, label_col_id, category){
+    df = read_tsv(path) %>%
+        distinct(chrom, start, end, peak_name, score, strand, .keep_all = TRUE) %>%
+        select(chrom, start, end, label=label_col_id, score, strand, log2_foldchange, lfc_SE, stat,
+               log10_pval, log10_padj, mean_expr, condition_expr, control_expr) %>%
+        mutate(sig = if_else(log10_padj > -log10(alpha), TRUE, FALSE),
+               category = category) %>%
+        bind_rows(df, .) %>%
+        return()
 }
 
-clean = function(df, labelcol, type){
-    df %>% select(label = labelcol, meanExpr, log2FoldChange, logpadj, sig) %>% mutate(type=type) %>% return()
-}
+main = function(in_all, in_genic, in_intra, in_inter,
+                condition, control, lfc, alpha,
+                out_ma, out_volcano, out_volcano_free, out_mosaic, out_summary_table){
+    df = tibble() %>%
+        import(in_all, alpha=alpha, label_col_id="peak_name", category="all") %>%
+        import(in_genic, alpha=alpha, label_col_id="genic_name", category="genic") %>%
+        import(in_intra, alpha=alpha, label_col_id="orf_name", category="intragenic") %>%
+        import(in_inter, alpha=alpha, label_col_id="peak_name", category="intergenic") %>%
+        mutate(category = fct_inorder(category, ordered=TRUE))
 
-bin = function(df, type){
-    df %>%
-    transmute(change = if_else(sig, if_else(log2FoldChange > 0, "up", "down"), "unchanged")) %>%
-    group_by(change) %>% count() %>% filter(!is.na(change)) %>% mutate(class=type) %>% return()
-}
+    min_x = quantile(df[["mean_expr"]], .2)
 
-main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, out.ma, out.volcano, out.volcano_free, out.summary, factor){
-    all = import(in.all, alpha)
-    genic = import(in.genic, alpha)
-    intra = import(in.intra, alpha)
-    inter = import(in.inter, alpha)
-
-    cleandf = clean(all, 'peak_name', 'all') %>% bind_rows(clean(genic, 'transcript_name', 'genic')) %>%
-                bind_rows(clean(intra, 'ORF_name', 'intragenic')) %>%
-                bind_rows(clean(inter, 'peak_name', 'intergenic'))
-    cleandf$type = fct_inorder(cleandf$type, ordered=TRUE)
-    minx = quantile(cleandf$meanExpr, .2)
-
-    maplot = ggplot(data = cleandf, aes(x=meanExpr, y=log2FoldChange)) +
+    maplot = ggplot(data = df, aes(x=mean_expr, y=log2_foldchange)) +
                 geom_hline(yintercept = 0, linetype="dashed") +
-                geom_point(aes(color=sig), shape=16, alpha=0.4, stroke=0, size=.8) +
-                scale_color_manual(values = c("grey40", "red"), guide=FALSE) +
-                stat_dens2d_filter(data = cleandf %>% filter(sig & meanExpr>minx & log2FoldChange > 0),
+                geom_point(aes(color=sig), shape=1, alpha=0.4, size=.4) +
+                scale_color_manual(values = c("grey40", "#440154FF"), guide=FALSE) +
+                stat_dens2d_filter(data = df %>% filter(sig & mean_expr>min_x & log2_foldchange > 0),
                                    geom = "text_repel",
                                    aes(label = label),
                                    keep.number = 5,
@@ -43,7 +37,7 @@ main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, ou
                                    box.padding = unit(0.1, "lines"),
                                    nudge_y = .3,
                                    size=1.5) +
-                stat_dens2d_filter(data = cleandf %>% filter(sig & meanExpr>minx & log2FoldChange < 0),
+                stat_dens2d_filter(data = df %>% filter(sig & mean_expr>min_x & log2_foldchange < 0),
                                    geom = "text_repel",
                                    aes(label = label),
                                    keep.number = 5,
@@ -51,12 +45,12 @@ main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, ou
                                    box.padding = unit(0.1, "lines"),
                                    nudge_y = -.3,
                                    size=1.5) +
-                scale_x_log10(name="mean signal", limits=c(1, NA),
+                scale_x_log10(name="mean occupancy", limits=c(1, NA),
                               expand=c(0,0)) +
                 scale_y_continuous(breaks = scales::pretty_breaks(n=5)) +
-                ylab(substitute(bold(log[bold(2)]~frac(cond,cont)), list(cond=cond, cont=ctrl))) +
-                facet_wrap(~type, nrow=1) +
-                ggtitle(paste(factor, "ChIP-nexus MA plots:", cond, "vs.", ctrl),
+                ylab(bquote(bold(log[2]~frac(.(condition), .(control))))) +
+                facet_wrap(~category) +
+                ggtitle(paste(factor, "ChIP-nexus MA plots:", condition, "vs.", control),
                         subtitle = bquote("DESeq2: |" ~ log[2] ~ "fold-change" ~ "| >" ~ log[2](.(lfc)) ~ "@ FDR" ~ .(alpha)))  +
                 theme_bw() +
                 theme(text = element_text(size=12, face="bold"),
@@ -65,12 +59,12 @@ main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, ou
                       strip.background = element_blank(),
                       strip.text = element_text(size=12, face="bold", color="black"))
 
-    ggsave(out.ma, maplot, height=10, width=30, units="cm")
+    ggsave(out_ma, maplot, height=16, width=22, units="cm")
 
-    volcano = ggplot(data = cleandf, aes(x = log2FoldChange, y = logpadj))+
-                geom_point(aes(color=sig), shape=16, alpha=0.4, stroke=0, size=.8) +
-                scale_color_manual(values = c("grey40", "red"), guide=FALSE) +
-                stat_dens2d_filter(data = cleandf %>% filter(sig & log2FoldChange < 0),
+    volcano = ggplot(data = df, aes(x=log2_foldchange, y=log10_padj))+
+                geom_point(aes(color=sig), shape=1, alpha=0.4, size=.4) +
+                scale_color_manual(values = c("grey40", "#440154FF"), guide=FALSE) +
+                stat_dens2d_filter(data = df %>% filter(sig & log2_foldchange < 0),
                                    geom = "text_repel",
                                    aes(label = label),
                                    keep.number = 5,
@@ -78,7 +72,7 @@ main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, ou
                                    box.padding = unit(0.1, "lines"),
                                    nudge_x = -0.3,
                                    size=1.5) +
-                stat_dens2d_filter(data = cleandf %>% filter(sig & log2FoldChange > 0),
+                stat_dens2d_filter(data = df %>% filter(sig & log2_foldchange > 0),
                                    geom = "text_repel",
                                    aes(label = label),
                                    keep.number = 5,
@@ -87,8 +81,8 @@ main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, ou
                                    nudge_x = 0.3,
                                    size=1.5) +
                 ylab(expression(bold(-log[10] ~ p[adj]))) +
-                xlab(substitute(bold(log[bold(2)]~frac(cond,cont)), list(cond=cond, cont=ctrl))) +
-                ggtitle(paste(factor, "ChIP-nexus volcano plots:", cond, "vs.", ctrl),
+                xlab(bquote(bold(log[2]~frac(condition,control)))) +
+                ggtitle(paste(factor, "ChIP-nexus volcano plots:", condition, "vs.", control),
                         subtitle = bquote("DESeq2: |" ~ log[2] ~ "fold-change" ~ "| >" ~ log[2](.(lfc)) ~ "@ FDR" ~ .(alpha)))  +
                 theme_bw() +
                 theme(text = element_text(size=12, face="bold"),
@@ -97,58 +91,66 @@ main = function(in.all, in.genic, in.intra, in.inter, cond, ctrl, lfc, alpha, ou
                       strip.background = element_blank(),
                       strip.text = element_text(size=12, face="bold", color="black"))
 
-    ggsave(out.volcano, volcano + facet_wrap(~type, nrow=1) , height=10, width=30, units="cm")
-    ggsave(out.volcano_free, volcano + facet_wrap(~type, nrow=1, scales="free_y") , height=10, width=30, units="cm")
+    ggsave(out_volcano, volcano + facet_wrap(~category) , height=16, width=20, units="cm")
+    ggsave(out_volcano_free, volcano + facet_wrap(~category, scales="free_y") , height=16, width=20, units="cm")
 
-    countdf = bind_rows(bin(genic, 'genic')) %>% bind_rows(bin(intra, 'intragenic')) %>%
-                bind_rows(bin(inter, 'intergenic')) %>%
-                group_by(class) %>% mutate(ymax = cumsum(n), ymin = (cumsum(n)-n)) %>%
-                mutate_at(vars(ymin, ymax), funs(./max(ymax)))
+    count_df = df %>%
+        filter(category != "all") %>%
+        mutate(change = if_else(sig, if_else(log2_foldchange > 0, "up", "down"), "unchanged")) %>%
+        count(category, change) %>%
+        write_tsv(out_summary_table) %>%
+        filter(! is.na(change)) %>%
+        mutate(xmax = cumsum(n), xmin=cumsum(n)-n) %>%
+        group_by(category) %>%
+        mutate(ymax=cumsum(n), ymin=cumsum(n)-n,
+               xmax=max(xmax), xmin=min(xmin)) %>%
+        mutate_at(vars(ymin, ymax), funs(./max(ymax))) %>%
+        ungroup() %>%
+        mutate_at(vars(xmin, xmax), funs(./max(xmax))) %>%
+        mutate(x=(xmin+xmax)/2,
+               y=(ymin+ymax)/2)
 
-    countdf$class = fct_inorder(countdf$class, ordered=TRUE)
-    countdf$change = fct_inorder(countdf$change, ordered=TRUE)
+    mosaic = ggplot() +
+        geom_rect(data = count_df,
+                  aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=change),
+                  color = "white", size=1.5) +
+        geom_text(data = count_df,
+                  aes(x=x, y=y, label=n),
+                  size=12/75*25.4, color="black", fontface="bold") +
+        geom_text(data = count_df %>% group_by(category) %>% summarise(x=first(x)),
+                  aes(x=x, label=category), y=1.04, angle=30, hjust=.1,
+                  size=12/75*25.4, fontface="bold") +
+        scale_fill_brewer(palette = "Set1",
+                          guide=guide_legend(reverse=TRUE)) +
+        scale_x_continuous(limits = c(NA, 1.08), expand=c(0,0)) +
+        scale_y_continuous(limits = c(NA, 1.15)) +
+        theme_void() +
+        ggtitle(paste(factor, "ChIP-nexus differential binding:", condition, "vs.", control),
+                subtitle = bquote("DESeq2: |" ~ log[2] ~ "fold-change" ~ "| >" ~ log[2](.(lfc)) ~ "@ FDR" ~ .(alpha)))  +
+        theme(legend.text = element_text(size=12, face="bold", color="black"),
+              legend.title = element_blank(),
+              legend.position = c(.96, .5),
+              legend.justification = "left",
+              legend.key.size = unit(1, "cm"),
+              plot.margin = unit(c(.5, 3.25, 0, 0.25), "cm"),
+              plot.title = element_text(size=12, face="bold", color="black"),
+              plot.subtitle = element_text(size=10))
 
-    csx = countdf %>% group_by(class) %>% summarise(classn = sum(n)) %>%
-            mutate(xmax = cumsum(classn), xmin = cumsum(classn)-classn) %>% select(-classn)
-    countdf = countdf %>% left_join(csx, by='class')
-
-    gsummary = ggplot() +
-                geom_rect(data=countdf, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, fill=change),
-                          color="white", alpha=0.9, size=1.5) +
-                geom_text(data = countdf, aes(x=(xmin+xmax)/2, y=(ymin+ymax)/2, label=n),
-                          size=4, color="black", fontface="bold") +
-                geom_text(data = (countdf %>% summarise(x = (max(xmax)+min(xmin))/2)),
-                            aes(x=x, label=class), y=1.04, angle=30, hjust=.1, size=4, fontface="bold") +
-                scale_fill_brewer(palette = "Set1") +
-                scale_x_continuous(limits = c(NA, max(countdf$xmax)*1.08), expand=c(0,0)) +
-                scale_y_continuous(limits = c(NA, 1.15)) +
-                guides(fill=guide_legend(reverse=TRUE)) +
-                theme_void() +
-                ggtitle(paste(factor, "ChIP-nexus differential binding:", cond, "vs.", ctrl),
-                        subtitle = bquote("DESeq2: |" ~ log[2] ~ "fold-change" ~ "| >" ~ log[2](.(lfc)) ~ "@ FDR" ~ .(alpha)))  +
-                theme(legend.text = element_text(size=12, face="bold", color="black"),
-                      legend.title = element_blank(),
-                      legend.position = c(.96, .5),
-                      legend.justification = "left",
-                      legend.key.size = unit(1, "cm"),
-                      plot.margin = unit(c(.5, 3.25, 0, 0.25), "cm"),
-                      plot.title = element_text(size=12, face="bold", color="black"),
-                      plot.subtitle = element_text(size=10))
-
-    ggsave(out.summary, gsummary, height=10, width=20, units="cm")
+    ggsave(out_mosaic, mosaic, height=10, width=20, units="cm")
 }
 
-main(in.all = snakemake@input[["total"]],
-     in.genic = snakemake@input[["genic"]],
-     in.intra = snakemake@input[["intragenic"]],
-     in.inter = snakemake@input[["intergenic"]],
-     cond = snakemake@wildcards[["condition"]],
-     ctrl = snakemake@wildcards[["control"]],
+main(in_all = snakemake@input[["total"]],
+     in_genic = snakemake@input[["genic"]],
+     in_intra = snakemake@input[["intragenic"]],
+     in_inter = snakemake@input[["intergenic"]],
+     condition = snakemake@wildcards[["condition"]],
+     control = snakemake@wildcards[["control"]],
      lfc = snakemake@params[["lfc"]],
      alpha = snakemake@params[["alpha"]],
-     out.ma = snakemake@output[["maplot"]],
-     out.volcano = snakemake@output[["volcano"]],
-     out.volcano_free = snakemake@output[["volcano_free"]],
-     out.summary = snakemake@output[["summary"]],
+     out_ma = snakemake@output[["maplot"]],
+     out_volcano = snakemake@output[["volcano"]],
+     out_volcano_free = snakemake@output[["volcano_free"]],
+     out_mosaic = snakemake@output[["mosaic"]],
+     out_summary_table = snakemake@output[["summary_table"]],
      factor = snakemake@wildcards[["factor"]])
 

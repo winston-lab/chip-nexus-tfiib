@@ -7,7 +7,7 @@ __default__:
     log : "logs/cluster/{rule}.{wildcards}.log"
     err : "logs/cluster/{rule}.{wildcards}.err"
 
-summarise_db_results:
+summarise_diffbind_results:
     time: 2
     mem : 10
 
