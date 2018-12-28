@@ -64,7 +64,7 @@ rule test_motif_enrichment:
         fdr = -log10(config["motifs"]["enrichment-fdr"]),
         direction = lambda wc: "upregulated" if wc.direction=="up" else "downregulated"
     conda:
-        nexuspipe("../envs/tidyverse.yaml")
+        nexuspipe("envs/tidyverse.yaml")
     script:
         "../scripts/motif_enrichment.R"
 

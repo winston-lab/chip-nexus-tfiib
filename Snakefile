@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import itertools
+from math import log10
 
 configfile: "config.yaml"
 
@@ -33,7 +34,7 @@ if comparisons_si:
 
 include: "rules/chip-nexus_classify_peaks.smk"
 include: "rules/chip-nexus_gene_ontology.smk"
-# include: "rules/chip-nexus_motifs.smk"
+include: "rules/chip-nexus_motifs.smk"
 
 onsuccess:
     shell("(./mogrify.sh) > mogrify.log")
@@ -59,8 +60,8 @@ rule target:
         expand(expand("gene_ontology/{condition}-v-{control}/libsizenorm/{{category}}/{condition}-v-{control}_{{factor}}-chipnexus-libsizenorm-{{category}}-{{direction}}-gene-ontology-enriched-all.svg", zip, condition=conditiongroups, control=controlgroups), direction=["up", "down", "unchanged"], category=["genic", "intragenic"], factor=FACTOR) if config["run_gene_ontology"] else [],
         expand(expand("gene_ontology/{condition}-v-{control}/spikenorm/{{category}}/{condition}-v-{control}_{{factor}}-chipnexus-spikenorm-{{category}}-{{direction}}-gene-ontology-enriched-all.svg", zip, condition=conditiongroups_si, control=controlgroups_si), direction=["up", "down", "unchanged"], category=["genic", "intragenic"], factor=FACTOR) if config["run_gene_ontology"] and comparisons_si else [],
         ##enrichment of known motifs
-        #expand(expand("motifs/{condition}-v-{control}/libsizenorm/{{category}}/{{negative}}/{condition}-v-{control}_{{factor}}-chipnexus-libsizenorm-{{category}}-{{direction}}-v-{{negative}}-motif_enrichment.tsv", zip, condition=conditiongroups, control=controlgroups), direction=["up","down"], negative=["unchanged", "random"], category=CATEGORIES, factor=FACTOR) if config["motifs"]["run_motif_analyses"] else [],
-        #expand(expand("motifs/{condition}-v-{control}/spikenorm/{{category}}/{{negative}}/{condition}-v-{control}_{{factor}}-chipnexus-spikenorm-{{category}}-{{direction}}-v-{{negative}}-motif_enrichment.tsv", zip, condition=conditiongroups_si, control=controlgroups_si), direction=["up","down"], negative=["unchanged", "random"], category=CATEGORIES, factor=FACTOR) if config["motifs"]["run_motif_analyses"] and comparisons_si else [],
+        expand(expand("motifs/{condition}-v-{control}/libsizenorm/{{category}}/{{negative}}/{condition}-v-{control}_{{factor}}-chipnexus-libsizenorm-{{category}}-{{direction}}-v-{{negative}}-motif_enrichment.tsv", zip, condition=conditiongroups, control=controlgroups), direction=["up","down"], negative=["unchanged", "random"], category=CATEGORIES, factor=FACTOR) if config["motifs"]["run_motif_analyses"] else [],
+        expand(expand("motifs/{condition}-v-{control}/spikenorm/{{category}}/{{negative}}/{condition}-v-{control}_{{factor}}-chipnexus-spikenorm-{{category}}-{{direction}}-v-{{negative}}-motif_enrichment.tsv", zip, condition=conditiongroups_si, control=controlgroups_si), direction=["up","down"], negative=["unchanged", "random"], category=CATEGORIES, factor=FACTOR) if config["motifs"]["run_motif_analyses"] and comparisons_si else [],
 
 rule summarise_diffbind_results:
     input:
