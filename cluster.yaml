@@ -11,9 +11,13 @@ summarise_diffbind_results:
     time: 2
     mem : 400
 
+genic_v_intragenic:
+    time: 2
+    mem: 200
+
 gene_ontology:
     time: 4
-    mem: 600
+    mem: 1000
 
 fimo:
     time: 3
