@@ -7,12 +7,12 @@ main = function(condition, control,
                 tsv_out, lfc_v_lfc_out, lfc_v_expr_out, expr_v_expr_out,
                 factor){
     df = read_tsv(genic_path) %>%
-        select(chrom, start, end, peak_name, score, strand,
+        select(chrom, start, end, name, score, strand,
                log2_FC=log2_foldchange, lfc_SE, log10_padj,
                condition_expr, control_expr, peak_summit,
                feature_name=genic_name) %>%
         inner_join(read_tsv(intra_path) %>%
-                       select(chrom, start, end, peak_name, score, strand,
+                       select(chrom, start, end, name, score, strand,
                               log2_FC=log2_foldchange, lfc_SE, log10_padj,
                               condition_expr, control_expr, peak_summit,
                               feature_name=orf_name, atg_to_peak_dist),
