@@ -30,7 +30,7 @@ cat_fimo_motifs:
 
 get_overlapping_motifs:
     time: 3
-    mem: 1
+    mem: 100M
 
 test_motif_enrichment:
     time: 3
