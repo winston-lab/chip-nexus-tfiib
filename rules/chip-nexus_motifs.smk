@@ -9,7 +9,7 @@ localrules:
 #2. intersect with motif file
 rule get_overlapping_motifs:
     input:
-        peaks = "diff_binding/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{category}-{direction}.narrowpeak",
+        peaks = "diff_binding/peaks/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-peaks-diffbind-results-{category}-{direction}.narrowpeak",
         fasta = os.path.abspath(build_annotations(config["genome"]["fasta"])),
         motifs = build_annotations("motifs/" + config["genome"]["name"] + "_allmotifs.bed")
     output:

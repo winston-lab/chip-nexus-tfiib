@@ -1,6 +1,7 @@
 diff_binding/
 peakcalling/
-gene_ontology
+gene_ontology/
+motifs/
 
 dag.svg
 Rplots.pdf
