@@ -10,7 +10,7 @@ subworkflow nexuspipe:
 configfile: nexuspipe("config.yaml")
 
 subworkflow build_annotations:
-    workdir: config["genome"]["annotation_workflow"]
+    workdir: nexuspipe(config["genome"]["annotation_workflow"])
 
 configfile: build_annotations("config.yaml")
 

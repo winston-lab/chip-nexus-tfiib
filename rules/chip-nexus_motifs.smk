@@ -11,7 +11,7 @@ rule get_overlapping_motifs:
     input:
         peaks = "diff_binding/peaks/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-peaks-diffbind-results-{category}-{direction}.narrowpeak",
         fasta = os.path.abspath(build_annotations(config["genome"]["fasta"])),
-        motifs = build_annotations("motifs/" + config["genome"]["name"] + "_allmotifs.bed")
+        motifs = build_annotations("motifs/" + config["genome"]["name"] + "_all_dna_motifs.bed")
     output:
         "motifs/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-{category}-{direction}-allFIMOresults.tsv.gz",
     params:
@@ -34,7 +34,7 @@ rule get_overlapping_motifs:
 rule get_random_motifs:
     input:
         fasta = os.path.abspath(build_annotations(config["genome"]["fasta"])),
-        motifs = build_annotations("motifs/" + config["genome"]["name"] + "_allmotifs.bed"),
+        motifs = build_annotations("motifs/" + config["genome"]["name"] + "_all_dna_motifs.bed"),
     output:
         "motifs/random_sequences-allFIMOresults.tsv.gz"
     params:
