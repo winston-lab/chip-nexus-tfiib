@@ -3,7 +3,7 @@
 rule gene_ontology:
     input:
         universe = lambda wc: config["genome"]["orf_annotation"] if wc.category=="intragenic" else config["genome"]["transcript_annotation"],
-        diffexp_path = "diff_binding/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-diffbind-results-{category}-{direction}.tsv",
+        diffexp_path = "diff_binding/peaks/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-peaks-diffbind-results-{category}-{direction}.tsv",
         go_anno_path = config["gene_ontology_mapping_file"]
     output:
         results = "gene_ontology/{condition}-v-{control}/{norm}/{category}/{condition}-v-{control}_{factor}-chipnexus-{norm}-{category}-{direction}-gene-ontology-results.tsv",
